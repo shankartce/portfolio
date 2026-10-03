@@ -1,0 +1,511 @@
+---
+// All site content lives here. Edit these constants to update the page.
+const EMAIL = 'shankar310105@gmail.com';
+const BOOKING_URL = 'https://cal.com/shankar-pounraja/15min'; // Button hides while empty.
+const RESUME_URL = 'https://www.linkedin.com/in/shankarpoun/'; // Or a PDF in public/, e.g. '/resume.pdf'. Button hides while empty.
+const BLOG = 'https://shankartce.github.io';
+
+const projects = [
+  {
+    name: 'Earshot',
+    tagline: 'Listen to music together, in sync, from anywhere.',
+    body: 'A shared listening room. Everyone plays their own copy of each song; Earshot only keeps the players in step, so your audio is never uploaded. Presence, a shared queue, reactions, chat and synced lyrics. Installs like an app on phones.',
+    facts: ['Listeners stay within tens of ms', '115 tests passing', 'PWA with lock-screen controls'],
+    stack: ['TypeScript', 'Preact', 'Socket.IO', 'Node 22', 'Vite'],
+    image: '/earshot.jpg',
+    live: 'https://earshot-30yv.onrender.com',
+    repo: 'https://github.com/shankartce/earshot',
+  },
+  {
+    name: 'RAG Research Agent',
+    tagline: 'A research assistant that cites every claim or says it can’t.',
+    body: 'A ReAct agent that retrieves before it answers, makes only grounded claims and cites each one inline. Its retriever adapter plugs into any vector DB over HTTP.',
+    facts: ['Retrieval-first ReAct loop', 'Inline page-level citations', 'Answer · Sources · Confidence'],
+    stack: ['Python', 'AgentScope', 'OpenAI', 'Vector DB'],
+    repo: 'https://github.com/shankartce/rag-agent',
+  },
+  {
+    name: 'Murmur',
+    tagline: 'Private voice typing for Windows: hold a key, speak, done.',
+    body: 'An open-source, local-first alternative to Wispr Flow. Speech-to-text and AI cleanup run entirely on your CPU. No cloud, no account, no telemetry.',
+    pipeline: ['Mic', 'VAD trim', 'Parakeet / Whisper', 'Cleanup', 'Local LLM', 'Any app'],
+    stack: ['Rust', 'Tauri v2', 'sherpa-onnx', 'whisper.cpp', 'llama.cpp'],
+    repo: 'https://github.com/shankartce/voiceflow',
+    wip: true,
+  },
+];
+
+const moreProjects = [
+  {
+    name: 'Local LLM App',
+    year: '2025',
+    body: 'Streaming chat app running Qwen 2.5 3B and Phi-3 Mini locally via llama.cpp, tuned to run on 8 GB RAM.',
+    stack: ['LangChain', 'llama.cpp', 'FastAPI'],
+  },
+  {
+    name: 'Safeway EMS',
+    year: '2024',
+    body: 'Green-corridor system for ambulances: live GPS plus signal control, projected to cut response time by up to 50%.',
+    stack: ['Google Maps API', 'Route optimization', 'IoT'],
+  },
+  {
+    name: 'Autonomous Maze Solver',
+    year: '2025',
+    body: 'Real-time navigation with IR + ultrasonic sensor fusion, built for the Technoxian World Cup 9.0 in Noida.',
+    stack: ['Embedded C', 'Sensor fusion', 'Pathfinding'],
+  },
+];
+
+const experience = [
+  {
+    role: 'AI & Software Development Intern',
+    org: 'Kactii',
+    when: '2025 – Present',
+    body: 'Building AI-powered products in a cross-functional team: LLM tooling, AI game development and the Kactii News project.',
+  },
+  {
+    role: 'Intern Trainee',
+    org: 'NLC India Limited',
+    when: 'May – Jun 2024',
+    body: 'Studied 400 kV and 220 kV gas-insulated switchyard equipment at a 1000 MW thermal power station.',
+  },
+  {
+    role: 'B.E. Electrical & Electronics Engineering',
+    org: 'Thiagarajar College of Engineering',
+    when: '2022 – 2026',
+    body: 'Led a URP-funded EV battery management digital twin. 3rd prize, Smart BMS for EVs hackathon.',
+  },
+];
+
+const services = [
+  { title: 'LLM apps & RAG', body: 'Chat and document Q&A over your data, grounded with citations.' },
+  { title: 'AI agents & automation', body: 'Tool-using agents and workflows that take repetitive work off your plate.' },
+  { title: 'Real-time & voice', body: 'Live sync, speech-to-text and on-device AI that respects privacy.' },
+];
+
+const stack = ['Python', 'TypeScript', 'LangChain', 'AgentScope', 'Azure AI Foundry', 'FastAPI', 'Preact', 'Socket.IO', 'llama.cpp', 'Rust', 'Linux', 'Git'];
+
+// Latest posts from the blog's Atom feed, fetched at build time. Daily rebuild in deploy.yml keeps it fresh.
+const decode = (s: string) =>
+  s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+let posts: { title: string; url: string; date: Date; excerpt: string }[] = [];
+try {
+  const xml = await (await fetch(`${BLOG}/feeds/all.atom.xml`)).text();
+  posts = [...xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g)]
+    .map(([, e]) => {
+      const summary = decode(e.match(/<summary[^>]*>([\s\S]*?)<\/summary>/)?.[1] ?? '')
+        .replace(/<[^>]+>/g, ' ').replace(/^\s*TL;DR\s*/i, '').replace(/\s+/g, ' ').replace(/ ([,.;:!?])/g, '$1').trim();
+      return {
+        title: decode(e.match(/<title[^>]*>([\s\S]*?)<\/title>/)?.[1] ?? ''),
+        url: e.match(/<link[^>]*href="([^"]+)"/)?.[1] ?? BLOG,
+        date: new Date(e.match(/<published>([^<]+)/)?.[1] ?? e.match(/<updated>([^<]+)/)?.[1] ?? 0),
+        excerpt: summary.length > 140 ? summary.slice(0, 140).replace(/\s\S*$/, '') + '…' : summary,
+      };
+    })
+    .sort((a, b) => +b.date - +a.date)
+    .slice(0, 3);
+} catch {
+  // ponytail: feed down at build time → section just shows the "all posts" link
+}
+const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+const title = 'Shankar Pounraja · AI Engineer';
+const description = 'AI engineer building LLM apps, RAG systems and AI agents. Open to full-time roles and freelance work.';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#07070d" />
+    <link rel="canonical" href={Astro.site} />
+    <link rel="icon" href="/avatar.jpg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={Astro.site} />
+    <meta property="og:image" content={new URL('/avatar.jpg', Astro.site)} />
+    <meta name="twitter:card" content="summary" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="mesh" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <header class="nav glass">
+      <a href="#top" class="logo">SP<i>.</i></a>
+      <nav>
+        <a href="#work">Work</a>
+        <a href="#experience">Experience</a>
+        <a href="#services">Services</a>
+        <a href="#writing">Writing</a>
+        <a href="#contact" class="pill">Contact</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero reveal">
+        <div class="avatar"><img src="/avatar.jpg" alt="Shankar Pounraja" width="140" height="140" /></div>
+        <p class="badge"><i class="dot"></i> Open to full-time roles &amp; freelance work</p>
+        <h1>Shankar Pounraja</h1>
+        <p class="lead">
+          <span class="grad">AI Engineer.</span> I build LLM apps, RAG systems and AI agents that are
+          fast, grounded and pleasant to use.
+        </p>
+        <p class="sub">B.E. Electrical &amp; Electronics Engineering · Thiagarajar College of Engineering, 2026</p>
+        <div class="ctas">
+          <a href="#work" class="btn primary">See my work <span aria-hidden="true">→</span></a>
+          {BOOKING_URL && <a href={BOOKING_URL} class="btn glass" target="_blank" rel="noopener">Book a call</a>}
+          {RESUME_URL && <a href={RESUME_URL} class="btn glass" target="_blank" rel="noopener">Résumé</a>}
+          <a href="https://github.com/shankartce" class="btn ghost" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://www.linkedin.com/in/shankarpoun/" class="btn ghost" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <div class="marquee-wrap">
+          <ul class="marquee" aria-label="Tech I use">
+            {[...stack, ...stack].map((s, i) => <li aria-hidden={i >= stack.length ? 'true' : undefined}>{s}</li>)}
+          </ul>
+        </div>
+      </section>
+
+      <section id="work">
+        <h2 class="reveal"><small>01 · Selected work</small>Things I’ve built</h2>
+        <div class="projects">
+          {projects.map((p, i) => (
+            <article class={`card glass reveal ${i === 0 ? 'featured' : ''}`}>
+              {p.image && (
+                <a href={p.live} class="shot" target="_blank" rel="noopener">
+                  <img src={p.image} alt={`${p.name} screenshot`} loading="lazy" width="800" height="477" />
+                </a>
+              )}
+              <div class="card-body">
+                <div class="card-head">
+                  <h3>{p.name}</h3>
+                  {p.wip && <span class="tag wip">Building now</span>}
+                  {p.live && <span class="tag live">Live</span>}
+                </div>
+                <p class="tagline">{p.tagline}</p>
+                <p>{p.body}</p>
+                {p.facts && <ul class="facts">{p.facts.map((f) => <li>{f}</li>)}</ul>}
+                {p.pipeline && (
+                  <ol class="pipeline" aria-label="How it works">
+                    {p.pipeline.map((s) => <li>{s}</li>)}
+                  </ol>
+                )}
+                <ul class="chips">{p.stack.map((s) => <li>{s}</li>)}</ul>
+                <div class="links">
+                  {p.live && <a href={p.live} target="_blank" rel="noopener">Live demo ↗</a>}
+                  <a href={p.repo} target="_blank" rel="noopener">{p.wip ? 'Design docs ↗' : 'Source ↗'}</a>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+        <h3 class="subhead reveal">More projects</h3>
+        <div class="grid3">
+          {moreProjects.map((p) => (
+            <div class="card glass reveal">
+              <span class="num">{p.year}</span>
+              <h3>{p.name}</h3>
+              <p>{p.body}</p>
+              <ul class="chips">{p.stack.map((s) => <li>{s}</li>)}</ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="experience">
+        <h2 class="reveal"><small>02 · Experience</small>Where I’ve worked</h2>
+        <ol class="timeline">
+          {experience.map((e) => (
+            <li class="card glass reveal">
+              <div class="t-head">
+                <h3>{e.role} <span>· {e.org}</span></h3>
+                <time>{e.when}</time>
+              </div>
+              <p>{e.body}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section id="services">
+        <h2 class="reveal"><small>03 · What I can build for you</small>Services</h2>
+        <div class="grid3">
+          {services.map((s, i) => (
+            <div class="card glass reveal">
+              <span class="num">0{i + 1}</span>
+              <h3>{s.title}</h3>
+              <p>{s.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="writing">
+        <h2 class="reveal"><small>04 · Writing</small>Learning in public</h2>
+        <div class="grid3">
+          {posts.map((p) => (
+            <a href={p.url} class="card glass post reveal" target="_blank" rel="noopener">
+              <time datetime={p.date.toISOString()}>{fmt(p.date)}</time>
+              <h3>{p.title}</h3>
+              <p>{p.excerpt}</p>
+              <span class="more">Read →</span>
+            </a>
+          ))}
+        </div>
+        <p class="reveal center"><a href={BLOG} class="btn ghost" target="_blank" rel="noopener">All posts on the blog →</a></p>
+      </section>
+
+      <section id="contact" class="contact glass reveal">
+        <h2><small>05 · Contact</small>Let’s build something <span class="grad">useful</span>.</h2>
+        <p>Hiring for an AI role, need a feature shipped, or just want to talk agents? My inbox is open.</p>
+        <div class="ctas">
+          <a href={`mailto:${EMAIL}`} class="btn primary">{EMAIL}</a>
+          <button class="btn glass" type="button" data-copy={EMAIL}>Copy email</button>
+          {BOOKING_URL && <a href={BOOKING_URL} class="btn glass" target="_blank" rel="noopener">Book a 20-min call</a>}
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>© {new Date().getFullYear()} Shankar Pounraja</span>
+      <span class="flinks">
+        <a href="https://github.com/shankartce" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.linkedin.com/in/shankarpoun/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href={BLOG} target="_blank" rel="noopener">Blog</a>
+        <a href="https://shankartce.github.io/pynotes/" target="_blank" rel="noopener">PyNotes</a>
+      </span>
+    </footer>
+
+    <script>
+      // Reveal on scroll
+      const io = new IntersectionObserver(
+        (entries) => entries.forEach((e) => e.isIntersecting && (e.target.classList.add('in'), io.unobserve(e.target))),
+        { threshold: 0.12 },
+      );
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+      // Cursor glow on cards
+      document.querySelectorAll<HTMLElement>('.card').forEach((c) =>
+        c.addEventListener('pointermove', (e) => {
+          const r = c.getBoundingClientRect();
+          c.style.setProperty('--mx', `${e.clientX - r.left}px`);
+          c.style.setProperty('--my', `${e.clientY - r.top}px`);
+        }),
+      );
+
+      // Copy email
+      document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) =>
+        b.addEventListener('click', async () => {
+          await navigator.clipboard.writeText(b.dataset.copy!);
+          const t = b.textContent;
+          b.textContent = 'Copied ✓';
+          setTimeout(() => (b.textContent = t), 1600);
+        }),
+      );
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --bg: #07070d;
+    --text: #ecebf5;
+    --muted: #a3a1b8;
+    --line: rgb(255 255 255 / 0.09);
+    --glass: rgb(255 255 255 / 0.045);
+    --v: #8b5cf6;
+    --c: #22d3ee;
+    --p: #f472b6;
+    --grad: linear-gradient(110deg, var(--v), var(--c) 55%, var(--p));
+    --radius: 22px;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.65 Inter, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  img { display: block; max-width: 100%; height: auto; }
+  h1, h2, h3, .logo { font-family: 'Space Grotesk', Inter, sans-serif; letter-spacing: -0.02em; line-height: 1.1; }
+  ::selection { background: var(--v); color: #fff; }
+  :focus-visible { outline: 2px solid var(--c); outline-offset: 3px; border-radius: 8px; }
+
+  /* Animated gradient mesh */
+  .mesh { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+  .mesh::after {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(transparent 0, var(--bg) 85%);
+  }
+  /* ponytail: radial gradients instead of filter: blur — same look, far cheaper to animate */
+  .mesh span {
+    position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%;
+    background: radial-gradient(circle, var(--blob) 0, transparent 65%);
+    opacity: 0.55; animation: drift 22s ease-in-out infinite alternate; will-change: transform;
+  }
+  .mesh span:nth-child(1) { --blob: var(--v); top: -30vmax; left: -25vmax; }
+  .mesh span:nth-child(2) { --blob: var(--c); top: 0; right: -35vmax; animation-delay: -7s; opacity: 0.35; }
+  .mesh span:nth-child(3) { --blob: var(--p); bottom: -40vmax; left: 10vmax; animation-delay: -14s; opacity: 0.35; }
+  @keyframes drift { to { transform: translate(8vmax, 6vmax) scale(1.15); } }
+
+  .glass {
+    background: var(--glass);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+  }
+  .grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  /* Nav */
+  .nav {
+    position: sticky; top: 16px; z-index: 10; margin: 16px auto 0; width: min(1080px, calc(100% - 32px));
+    display: flex; align-items: center; justify-content: space-between; padding: 10px 12px 10px 20px; border-radius: 999px;
+  }
+  .logo { font-weight: 700; font-size: 1.15rem; }
+  .logo i { color: var(--c); font-style: normal; }
+  .nav nav { display: flex; gap: 4px; }
+  .nav nav a { padding: 6px 14px; border-radius: 999px; color: var(--muted); font-size: 0.92rem; transition: color 0.2s, background 0.2s; }
+  .nav nav a:hover { color: var(--text); background: var(--glass); }
+  .nav nav a.pill { color: var(--text); background: rgb(255 255 255 / 0.08); }
+
+  main { width: min(1080px, calc(100% - 32px)); margin: 0 auto; }
+  section { padding: 96px 0 0; scroll-margin-top: 80px; }
+
+  /* Hero */
+  .hero { text-align: center; padding-top: 88px; }
+  .avatar {
+    width: 132px; height: 132px; margin: 0 auto 28px; padding: 3px; border-radius: 50%;
+    background: var(--grad); box-shadow: 0 0 60px rgb(139 92 246 / 0.45);
+  }
+  .avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--bg); }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--glass); color: var(--muted); font-size: 0.85rem;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 0 #34d39980; animation: ping 2s infinite; }
+  @keyframes ping { 70% { box-shadow: 0 0 0 8px #34d39900; } }
+  h1 { font-size: clamp(2.8rem, 8vw, 5.5rem); margin: 20px 0 16px; font-weight: 700; }
+  .lead { font-size: clamp(1.1rem, 2.4vw, 1.4rem); max-width: 640px; margin: 0 auto; color: var(--text); }
+  .lead .grad { font-weight: 600; }
+  .sub { color: var(--muted); margin-top: 10px; font-size: 0.95rem; }
+  .ctas { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 32px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px;
+    font: 500 0.95rem Inter, sans-serif; color: var(--text); cursor: pointer; border: 1px solid var(--line);
+    background: transparent; transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn.primary { background: var(--grad); border: 0; color: #fff; box-shadow: 0 8px 30px rgb(139 92 246 / 0.35); }
+  .btn.primary:hover { box-shadow: 0 12px 40px rgb(34 211 238 / 0.4); }
+  .btn.ghost { color: var(--muted); }
+  .btn.ghost:hover { color: var(--text); background: var(--glass); }
+
+  .marquee-wrap {
+    margin-top: 64px; overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
+  .marquee { list-style: none; padding: 0; display: flex; gap: 12px; width: max-content; animation: scroll 40s linear infinite; }
+  .marquee li { padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 0.9rem; white-space: nowrap; }
+  @keyframes scroll { to { transform: translateX(-50%); } }
+
+  /* Sections */
+  h2 { font-size: clamp(2rem, 4.5vw, 3rem); margin-bottom: 36px; }
+  h2 small {
+    display: block; margin-bottom: 10px; font: 500 0.8rem Inter, sans-serif; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--c);
+  }
+
+  .card {
+    position: relative; border-radius: var(--radius); overflow: hidden; transition: transform 0.3s, border-color 0.3s;
+  }
+  .card::before {
+    content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+    background: radial-gradient(400px circle at var(--mx, 50%) var(--my, 50%), rgb(139 92 246 / 0.16), transparent 60%);
+  }
+  .card:hover { transform: translateY(-4px); border-color: rgb(255 255 255 / 0.18); }
+  .card:hover::before { opacity: 1; }
+  .card h3 { font-size: 1.5rem; }
+  .card p { color: var(--muted); }
+
+  .projects { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .featured { grid-column: 1 / -1; display: grid; grid-template-columns: 1.25fr 1fr; }
+  .shot { display: block; overflow: hidden; border-right: 1px solid var(--line); }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: top left; transition: transform 0.6s; }
+  .featured:hover .shot img { transform: scale(1.03); }
+  .card-body { padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+  .card-head { display: flex; align-items: center; gap: 10px; }
+  .tagline { color: var(--text) !important; font-weight: 500; }
+  .tag { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; }
+  .tag.live { color: #34d399; background: rgb(52 211 153 / 0.12); }
+  .tag.wip { color: #fbbf24; background: rgb(251 191 36 / 0.12); }
+
+  .facts { list-style: none; padding: 0; display: grid; gap: 6px; font-size: 0.92rem; }
+  .facts li::before { content: '✦'; margin-right: 10px; color: var(--c); }
+  .chips { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips li { font-size: 0.78rem; padding: 4px 10px; border-radius: 999px; background: rgb(255 255 255 / 0.06); color: var(--muted); }
+  .pipeline { list-style: none; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.8rem; }
+  .pipeline li { padding: 5px 10px; border-radius: 8px; border: 1px dashed rgb(251 191 36 / 0.4); color: var(--text); }
+  .pipeline li:not(:last-child)::after { content: '→'; margin-left: 12px; color: var(--muted); }
+  .links { display: flex; gap: 18px; margin-top: auto; padding-top: 6px; font-weight: 500; }
+  .links a { color: var(--c); }
+  .links a:hover { text-decoration: underline; }
+
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid3 > .card { padding: 26px; display: flex; flex-direction: column; gap: 10px; }
+  .grid3 h3 { font-size: 1.2rem; }
+  .num { font: 600 0.85rem 'Space Grotesk', sans-serif; color: var(--v); }
+  .post time { font-size: 0.8rem; color: var(--c); }
+  .post p { font-size: 0.92rem; }
+  .post .more { margin-top: auto; font-weight: 500; }
+  .center { text-align: center; margin-top: 28px; }
+  .subhead { font-size: 1.3rem; margin: 48px 0 20px; color: var(--muted); }
+
+  .timeline { list-style: none; padding: 0 0 0 28px; display: grid; gap: 16px; border-left: 2px solid var(--line); }
+  .timeline li { padding: 22px 26px; overflow: visible; }
+  .timeline li::after {
+    content: ''; position: absolute; left: -35px; top: 28px; width: 12px; height: 12px; border-radius: 50%;
+    background: var(--grad); box-shadow: 0 0 14px rgb(139 92 246 / 0.6);
+  }
+  .t-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; margin-bottom: 6px; }
+  .timeline h3 { font-size: 1.15rem; }
+  .timeline h3 span { color: var(--muted); font-weight: 500; }
+  .timeline time { color: var(--c); font-size: 0.85rem; }
+
+  .contact { margin-top: 96px; padding: 64px 32px; border-radius: 32px; text-align: center; }
+  .contact h2 { margin-bottom: 16px; }
+  .contact p { color: var(--muted); max-width: 520px; margin: 0 auto; }
+
+  footer {
+    width: min(1080px, calc(100% - 32px)); margin: 64px auto 0; padding: 28px 0 40px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; color: var(--muted); font-size: 0.88rem;
+  }
+  .flinks { display: flex; gap: 18px; }
+  footer a:hover { color: var(--text); }
+
+  /* Reveal */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s ease, transform 0.8s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (max-width: 820px) {
+    .projects, .featured, .grid3 { grid-template-columns: 1fr; }
+    .shot { border-right: 0; border-bottom: 1px solid var(--line); }
+    .nav nav a:not(.pill) { display: none; }
+    section { padding-top: 72px; }
+    .hero { padding-top: 56px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1; transform: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
